@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포켓몬고 실효 스탯 계산기 (Lv.50 / Lv.51)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom Scrollbar for autocomplete dropdown */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-md">
+        <div class="max-w-4xl mx-auto px-4 py-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/40 shadow-inner">
+                    <div class="w-4 h-4 bg-white rounded-full"></div>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">포켓몬고 실효 스탯 계산기</h1>
+                    <p class="text-xs text-red-100 opacity-90 mt-0.5">Lv.50 & Lv.51 (15/15/15 vs 15/15/14) 실현 체력 비교</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-4xl mx-auto px-4 mt-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Left Side: Input Panel -->
+            <section class="lg:col-span-5 space-y-4">
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        포켓몬 검색 및 선택
+                    </h2>
+
+                    <!-- Search Input with Autocomplete -->
+                    <div class="relative mb-5">
+                        <label for="pokemon-search" class="block text-xs font-semibold text-slate-500 mb-1">포켓몬 이름 입력</label>
+                        <input type="text" id="pokemon-search" placeholder="예: 레시라무, 자시안, 펄기아..." 
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-sm font-medium">
+                        
+                        <!-- Autocomplete Dropdown List -->
+                        <div id="autocomplete-list" class="absolute z-20 w-full bg-white border border-slate-200 rounded-xl mt-1 shadow-xl max-h-60 overflow-y-auto hidden custom-scrollbar">
+                            <!-- Items inserted dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="relative flex py-1 items-center">
+                        <div class="flex-grow border-t border-slate-200"></div>
+                        <span class="flex-shrink mx-3 text-xs text-slate-400 font-medium">또는 직접 수치 입력</span>
+                        <div class="flex-grow border-t border-slate-200"></div>
+                    </div>
+
+                    <!-- Base Stats Input Controls -->
+                    <div class="space-y-3 mt-3">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="base-atk" class="text-xs font-semibold text-slate-600">공격 종족값 (Base Attack)</label>
+                                <span class="text-[10px] text-slate-400">Atk</span>
+                            </div>
+                            <input type="number" id="base-atk" placeholder="0" min="1" max="500" 
+                                class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 text-sm font-bold text-slate-800 transition">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="base-def" class="text-xs font-semibold text-slate-600">방어 종족값 (Base Defense)</label>
+                                <span class="text-[10px] text-slate-400">Def</span>
+                            </div>
+                            <input type="number" id="base-def" placeholder="0" min="1" max="500" 
+                                class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 text-sm font-bold text-slate-800 transition">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="base-sta" class="text-xs font-semibold text-slate-600">체력 종족값 (Base Stamina)</label>
+                                <span class="text-[10px] text-slate-400">Sta</span>
+                            </div>
+                            <input type="number" id="base-sta" placeholder="0" min="1" max="500" 
+                                class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 text-sm font-bold text-slate-800 transition">
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-5 flex gap-2">
+                        <button id="btn-calculate" class="flex-1 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-1.5 text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            계산하기
+                        </button>
+                        <button id="btn-reset" class="px-3 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-600 font-semibold rounded-xl transition text-xs">
+                            초기화
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Calculation Formula Info Badge -->
+                <div class="bg-slate-100 rounded-xl p-4 text-xs text-slate-600 leading-relaxed border border-slate-200">
+                    <p class="font-bold text-slate-700 mb-1">💡 적용된 계산 규칙</p>
+                    <ul class="list-disc pl-4 space-y-0.5 text-[11px]">
+                        <li>강화 계수 (CPM): <strong>Lv.50 = 0.84029999</strong> / <strong>Lv.51 = 0.84529999</strong></li>
+                        <li><strong>공격 / 방어:</strong> 소수점 셋째 자리 이하 버림 (`Math.floor(x * 100) / 100`)</li>
+                        <li><strong>체력:</strong> 소수점 이하 전체 버림 (`Math.floor(x)`)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Right Side: Calculation Results Panel -->
+            <section class="lg:col-span-7 space-y-5">
+                
+                <!-- Selected Pokemon Banner -->
+                <div id="selected-pokemon-header" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <span id="display-pokemon-name" class="text-xl font-extrabold text-slate-900">포켓몬을 선택하세요</span>
+                        <div id="display-base-stats" class="text-xs text-slate-500 mt-0.5">기본 종족값을 입력하면 실효 스탯이 계산됩니다.</div>
+                    </div>
+                    <div id="pokemon-type-badge" class="hidden px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+                        기본
+                    </div>
+                </div>
+
+                <!-- Level 50 Card Block -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-3 text-white flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-lg">Lv. 50</span>
+                            <span class="text-xs bg-emerald-800/50 px-2 py-0.5 rounded-md font-mono text-emerald-100">CPM 0.84029999</span>
+                        </div>
+                        <span class="text-xs font-medium text-emerald-100">최대 강화 (파트너 미적용)</span>
+                    </div>
+
+                    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Lv 50: 15 / 15 / 15 -->
+                        <div class="bg-emerald-50/50 rounded-xl p-3.5 border border-emerald-100 relative">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-emerald-900 bg-emerald-200/70 px-2 py-0.5 rounded">IV 15 / 15 / 15</span>
+                                <span class="text-[11px] font-semibold text-emerald-700">100% (HP 15)</span>
+                            </div>
+                            <div class="space-y-1.5 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500 text-xs">실효 공격력</span>
+                                    <span id="l50-15-atk" class="font-bold font-mono text-slate-800">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500 text-xs">실효 방어력</span>
+                                    <span id="l50-15-def" class="font-bold font-mono text-slate-800">-</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-1 border-t border-emerald-200/60">
+                                    <span class="text-slate-700 font-semibold text-xs">실제 체력(HP)</span>
+                                    <span id="l50-15-sta" class="font-black font-mono text-base text-emerald-700">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lv 50: 15 / 15 / 14 -->
+                        <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 relative">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-slate-700 bg-slate-200 px-2 py-0.5 rounded">IV 15 / 15 / 14</span>
+                                <span id="l50-functional-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded hidden"></span>
+                            </div>
+                            <div class="space-y-1.5 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500 text-xs">실효 공격력</span>
+                                    <span id="l50-14-atk" class="font-bold font-mono text-slate-800">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500 text-xs">실효 방어력</span>
+                                    <span id="l50-14-def" class="font-bold font-mono text-slate-800">-</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-1 border-t border-slate-200">
+                                    <span class="text-slate-700 font-semibold text-xs">실제 체력(HP)</span>
+                                    <span id="l50-14-sta" class="font-black font-mono text-base text-slate-700">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level 51 Card Block -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-white flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-lg">Lv. 51</span>
+                            <span class="text-xs bg-blue-800/50 px-2 py-0.5 rounded-md font-mono text-blue-100">CPM 0.84529999</span>
+                        </div>
+                        <span class="text-xs font-medium text-blue-100">최고의 파트너 적용</span>
+                    </div>
+
+                    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Lv 51: 15 / 15 / 15 -->
+                        <div class="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100 relative">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-blue-900 bg-blue-200/70 px-2 py-0.5 rounded">IV 15 / 15 / 15</span>
+                                <span class="text-[11px] font-semibold text-blue-700">100% (HP 15)</span>
+                            </div>
+                            <div class="space-y-1.5 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500 text-xs">실효 공격력</span>
+                                    <span id="l51-15-atk" class="font-bold font-mono text-slate-800">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500 text-xs">실효 방어력</span>
+                                    <span id="l51-15-def" class="font-bold font-mono text-slate-800">-</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-1 border-t border-blue-200/60">
+                                    <span class="text-slate-700 font-semibold text-xs">실제 체력(HP)</span>
+                                    <span id="l51-15-sta" class="font-black font-mono text-base text-blue-700">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lv 51: 15 / 15 / 14 -->
+                        <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 relative">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-slate-700 bg-slate-200 px-2 py-0.5 rounded">IV 15 / 15 / 14</span>
+                                <span id="l51-functional-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded hidden"></span>
+                            </div>
+                            <div class="space-y-1.5 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500 text-xs">실효 공격력</span>
+                                    <span id="l51-14-atk" class="font-bold font-mono text-slate-800">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500 text-xs">실효 방어력</span>
+                                    <span id="l51-14-def" class="font-bold font-mono text-slate-800">-</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-1 border-t border-slate-200">
+                                    <span class="text-slate-700 font-semibold text-xs">실제 체력(HP)</span>
+                                    <span id="l51-14-sta" class="font-black font-mono text-base text-slate-700">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </main>
+
+    <script>
+        /* -------------------------------------------------------------
+         * Pokemon Base Stats Database (Popular Master/Ultra League Mons)
+         * ------------------------------------------------------------- */
+        const POKEMON_DATABASE = [
+            { name: "레시라무", nameEn: "Reshiram", atk: 275, def: 211, sta: 205 },
+            { name: "자시안 (검왕)", nameEn: "Zacian (Crowned Sword)", atk: 332, def: 240, sta: 192 },
+            { name: "자시안 (역전의 용사)", nameEn: "Zacian (Hero)", atk: 254, def: 236, sta: 192 },
+            { name: "제크로무", nameEn: "Zekrom", atk: 275, def: 211, sta: 205 },
+            { name: "디아루가", nameEn: "Dialga", atk: 275, def: 211, sta: 205 },
+            { name: "디아루가 (오리진)", nameEn: "Dialga (Origin)", atk: 270, def: 225, sta: 205 },
+            { name: "펄기아", nameEn: "Palkia", atk: 280, def: 215, sta: 189 },
+            { name: "펄기아 (오리진)", nameEn: "Palkia (Origin)", atk: 286, def: 223, sta: 189 },
+            { name: "기라티나 (어나더)", nameEn: "Giratina (Altered)", atk: 187, def: 225, sta: 284 },
+            { name: "기라티나 (오리진)", nameEn: "Giratina (Origin)", atk: 225, def: 187, sta: 284 },
+            { name: "뮤츠", nameEn: "Mewtwo", atk: 300, def: 182, sta: 214 },
+            { name: "섀도 뮤츠", nameEn: "Shadow Mewtwo", atk: 300, def: 182, sta: 214 },
+            { name: "그란돈", nameEn: "Groudon", atk: 270, def: 228, sta: 205 },
+            { name: "원시 그란돈", nameEn: "Primal Groudon", atk: 353, def: 268, sta: 218 },
+            { name: "가이오가", nameEn: "Kyogre", atk: 270, def: 228, sta: 205 },
+            { name: "원시 가이오가", nameEn: "Primal Kyogre", atk: 353, def: 268, sta: 218 },
+            { name: "레쿠쟈", nameEn: "Rayquaza", atk: 284, def: 170, sta: 213 },
+            { name: "메가 레쿠쟈", nameEn: "Mega Rayquaza", atk: 377, def: 210, sta: 227 },
+            { name: "칠색조", nameEn: "Ho-Oh", atk: 239, def: 244, sta: 214 },
+            { name: "루기아", nameEn: "Lugia", atk: 193, def: 310, sta: 235 },
+            { name: "마기라스", nameEn: "Tyranitar", atk: 251, def: 207, sta: 225 },
+            { name: "망나뇽", nameEn: "Dragonite", atk: 263, def: 198, sta: 209 },
+            { name: "한카리아스", nameEn: "Garchomp", atk: 261, def: 193, sta: 239 },
+            { name: "삼삼드래", nameEn: "Hydreigon", atk: 256, def: 188, sta: 210 },
+            { name: "괴력몬", nameEn: "Machamp", atk: 234, def: 159, sta: 207 },
+            { name: "메타그로스", nameEn: "Metagross", atk: 257, def: 228, sta: 190 },
+            { name: "보만다", nameEn: "Salamence", atk: 277, def: 168, sta: 216 },
+            { name: "토게키스", nameEn: "Togekiss", atk: 225, def: 217, sta: 198 },
+            { name: "몰드류", nameEn: "Excadrill", atk: 255, def: 129, sta: 242 },
+            { name: "불카모스", nameEn: "Volcarona", atk: 264, def: 189, sta: 198 },
+            { name: "솔가레오", nameEn: "Solgaleo", atk: 255, def: 191, sta: 264 },
+            { name: "루나아라", nameEn: "Lunala", atk: 255, def: 191, sta: 264 },
+            { name: "네크로즈마 (황혼의 갈기)", nameEn: "Necrozma (Dusk Mane)", atk: 277, def: 220, sta: 202 },
+            { name: "네크로즈마 (새벽의 날개)", nameEn: "Necrozma (Dawn Wings)", atk: 277, def: 220, sta: 202 },
+            { name: "마마네크", nameEn: "Melmetal", atk: 226, def: 190, sta: 264 },
+            { name: "멜메탈", nameEn: "Melmetal", atk: 226, def: 190, sta: 264 },
+            { name: "랜드로스 (영물)", nameEn: "Landorus (Therian)", atk: 289, def: 179, sta: 205 },
+            { name: "볼트로스 (영물)", nameEn: "Thundurus (Therian)", atk: 295, def: 161, sta: 188 },
+            { name: "토네로스 (영물)", nameEn: "Tornadus (Therian)", atk: 238, def: 189, sta: 188 },
+            { name: "제르네아스", nameEn: "Xerneas", atk: 250, def: 185, sta: 246 },
+            { name: "이벨타르", nameEn: "Yveltal", atk: 250, def: 185, sta: 246 }
+        ];
+
+        // CPM Constants
+        const CPM_LV50 = 0.84029999;
+        const CPM_LV51 = 0.84529999;
+
+        // DOM Elements
+        const searchInput = document.getElementById('pokemon-search');
+        const autocompleteList = document.getElementById('autocomplete-list');
+        const inputAtk = document.getElementById('base-atk');
+        const inputDef = document.getElementById('base-def');
+        const inputSta = document.getElementById('base-sta');
+        const btnCalculate = document.getElementById('btn-calculate');
+        const btnReset = document.getElementById('btn-reset');
+
+        const displayPokemonName = document.getElementById('display-pokemon-name');
+        const displayBaseStats = document.getElementById('display-base-stats');
+
+        /* Helper: Floor Atk/Def at 2 decimal places */
+        function truncateTwoDecimals(val) {
+            if (isNaN(val)) return '-';
+            return (Math.floor(val * 100) / 100).toFixed(2);
+        }
+
+        /* Helper: Floor Stamina to integer */
+        function truncateInteger(val) {
+            if (isNaN(val)) return '-';
+            return Math.floor(val);
+        }
+
+        /* Core Calculation Engine */
+        function performCalculation() {
+            const atk = parseFloat(inputAtk.value);
+            const def = parseFloat(inputDef.value);
+            const sta = parseFloat(inputSta.value);
+
+            if (isNaN(atk) || isNaN(def) || isNaN(sta)) {
+                return;
+            }
+
+            // --- Lv. 50 Calculations ---
+            const l50_15_atk = truncateTwoDecimals((atk + 15) * CPM_LV50);
+            const l50_15_def = truncateTwoDecimals((def + 15) * CPM_LV50);
+            const l50_15_sta = truncateInteger((sta + 15) * CPM_LV50);
+
+            const l50_14_atk = truncateTwoDecimals((atk + 15) * CPM_LV50);
+            const l50_14_def = truncateTwoDecimals((def + 15) * CPM_LV50);
+            const l50_14_sta = truncateInteger((sta + 14) * CPM_LV50);
+
+            // Update Lv 50 UI
+            document.getElementById('l50-15-atk').innerText = l50_15_atk;
+            document.getElementById('l50-15-def').innerText = l50_15_def;
+            document.getElementById('l50-15-sta').innerText = l50_15_sta;
+
+            document.getElementById('l50-14-atk').innerText = l50_14_atk;
+            document.getElementById('l50-14-def').innerText = l50_14_def;
+            document.getElementById('l50-14-sta').innerText = l50_14_sta;
+
+            // Highlight functional 100% for Lv 50
+            const l50Badge = document.getElementById('l50-functional-badge');
+            if (l50_15_sta === l50_14_sta) {
+                l50Badge.innerText = "실질 100% (HP 동일)";
+                l50Badge.className = "text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300";
+                l50Badge.classList.remove('hidden');
+            } else {
+                l50Badge.innerText = `HP -1 차이`;
+                l50Badge.className = "text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200";
+                l50Badge.classList.remove('hidden');
+            }
+
+            // --- Lv. 51 Calculations ---
+            const l51_15_atk = truncateTwoDecimals((atk + 15) * CPM_LV51);
+            const l51_15_def = truncateTwoDecimals((def + 15) * CPM_LV51);
+            const l51_15_sta = truncateInteger((sta + 15) * CPM_LV51);
+
+            const l51_14_atk = truncateTwoDecimals((atk + 15) * CPM_LV51);
+            const l51_14_def = truncateTwoDecimals((def + 15) * CPM_LV51);
+            const l51_14_sta = truncateInteger((sta + 14) * CPM_LV51);
+
+            // Update Lv 51 UI
+            document.getElementById('l51-15-atk').innerText = l51_15_atk;
+            document.getElementById('l51-15-def').innerText = l51_15_def;
+            document.getElementById('l51-15-sta').innerText = l51_15_sta;
+
+            document.getElementById('l51-14-atk').innerText = l51_14_atk;
+            document.getElementById('l51-14-def').innerText = l51_14_def;
+            document.getElementById('l51-14-sta').innerText = l51_14_sta;
+
+            // Highlight functional 100% for Lv 51
+            const l51Badge = document.getElementById('l51-functional-badge');
+            if (l51_15_sta === l51_14_sta) {
+                l51Badge.innerText = "실질 100% (HP 동일)";
+                l51Badge.className = "text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300";
+                l51Badge.classList.remove('hidden');
+            } else {
+                l51Badge.innerText = `HP -1 차이`;
+                l51Badge.className = "text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200";
+                l51Badge.classList.remove('hidden');
+            }
+        }
+
+        // Autocomplete Search Filter
+        function filterPokemon(query) {
+            autocompleteList.innerHTML = '';
+            if (!query.trim()) {
+                autocompleteList.classList.add('hidden');
+                return;
+            }
+
+            const filtered = POKEMON_DATABASE.filter(p => 
+                p.name.includes(query.trim()) || p.nameEn.toLowerCase().includes(query.trim().toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                const noResult = document.createElement('div');
+                noResult.className = 'px-4 py-2.5 text-xs text-slate-400';
+                noResult.innerText = '검색 결과가 없습니다.';
+                autocompleteList.appendChild(noResult);
+            } else {
+                filtered.forEach(p => {
+                    const item = document.createElement('div');
+                    item.className = 'px-4 py-2.5 hover:bg-slate-100 cursor-pointer flex justify-between items-center text-sm border-b border-slate-50 last:border-none';
+                    item.innerHTML = `
+                        <div>
+                            <span class="font-bold text-slate-800">${p.name}</span>
+                            <span class="text-xs text-slate-400 ml-1">(${p.nameEn})</span>
+                        </div>
+                        <div class="text-xs font-mono text-slate-500">
+                            ${p.atk} / ${p.def} / ${p.sta}
+                        </div>
+                    `;
+                    item.addEventListener('click', () => {
+                        selectPokemon(p);
+                    });
+                    autocompleteList.appendChild(item);
+                });
+            }
+            autocompleteList.classList.remove('hidden');
+        }
+
+        /* Select Pokemon Action */
+        function selectPokemon(pokemon) {
+            searchInput.value = pokemon.name;
+            inputAtk.value = pokemon.atk;
+            inputDef.value = pokemon.def;
+            inputSta.value = pokemon.sta;
+
+            displayPokemonName.innerText = pokemon.name;
+            displayBaseStats.innerText = `기본 종족값 — 공격: ${pokemon.atk} | 방어: ${pokemon.def} | 체력: ${pokemon.sta}`;
+
+            autocompleteList.classList.add('hidden');
+            performCalculation();
+        }
+
+        /* Real-time input triggers */
+        [inputAtk, inputDef, inputSta].forEach(input => {
+            input.addEventListener('input', () => {
+                if (searchInput.value) {
+                    displayPokemonName.innerText = searchInput.value + " (직접 수정됨)";
+                } else {
+                    displayPokemonName.innerText = "사용자 지정 수치";
+                }
+                displayBaseStats.innerText = `기본 종족값 — 공격: ${inputAtk.value || 0} | 방어: ${inputDef.value || 0} | 체력: ${inputSta.value || 0}`;
+                performCalculation();
+            });
+        });
+
+        /* Event Listeners */
+        searchInput.addEventListener('input', (e) => {
+            filterPokemon(e.target.value);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !autocompleteList.contains(e.target)) {
+                autocompleteList.classList.add('hidden');
+            }
+        });
+
+        btnCalculate.addEventListener('click', () => {
+            performCalculation();
+        });
+
+        btnReset.addEventListener('click', () => {
+            searchInput.value = '';
+            inputAtk.value = '';
+            inputDef.value = '';
+            inputSta.value = '';
+            displayPokemonName.innerText = '포켓몬을 선택하세요';
+            displayBaseStats.innerText = '기본 종족값을 입력하면 실효 스탯이 계산됩니다.';
+
+            // Reset Output
+            ['l50-15-atk', 'l50-15-def', 'l50-15-sta', 'l50-14-atk', 'l50-14-def', 'l50-14-sta',
+             'l51-15-atk', 'l51-15-def', 'l51-15-sta', 'l51-14-atk', 'l51-14-def', 'l51-14-sta'].forEach(id => {
+                document.getElementById(id).innerText = '-';
+            });
+
+            document.getElementById('l50-functional-badge').classList.add('hidden');
+            document.getElementById('l51-functional-badge').classList.add('hidden');
+        });
+
+        // Initialize with default Pokemon (레시라무) on page load
+        window.onload = function() {
+            selectPokemon(POKEMON_DATABASE[0]);
+        };
+    </script>
+</body>
+</html>
